@@ -1,0 +1,21 @@
+{
+  "name": "howlongtobeat-api",
+  "version": "1.0.0",
+  "description": "Custom API for HowLongToBeat game completion times",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node src/test.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "node-html-parser": "^6.1.11"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
