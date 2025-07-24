@@ -321,7 +321,7 @@ class SteamGameBeatTimes {
     }
 
     async getSteamGames(steamId, apiKey) {
-        const url = `http://localhost:3000/api/steam/games?steamid=${steamId}&key=${apiKey}`;
+        const url = `https://api.berkankutuk.dk/api/hltb/steamGames?steamid=${steamId}&key=${apiKey}`;
         
         try {
             const response = await fetch(url);
@@ -565,7 +565,7 @@ class SteamGameBeatTimes {
         try {
             // Try original name first
             let searchName = game.name;
-            let response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(searchName)}`);
+            let response = await fetch(`https://api.berkankutuk.dk/api/hltb/search?q=${encodeURIComponent(searchName)}`);
             
             if (!response.ok) {
                 throw new Error(`API error: ${response.status}`);
@@ -578,7 +578,7 @@ class SteamGameBeatTimes {
                 const cleanedName = this.cleanGameTitle(game.name);
                 if (cleanedName !== game.name) {
                     console.log(`No results for "${game.name}", trying cleaned name: "${cleanedName}"`);
-                    response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(cleanedName)}`);
+                    response = await fetch(`https://api.berkankutuk.dk/api/hltb/search?q=${encodeURIComponent(cleanedName)}`);
                     if (response.ok) {
                         data = await response.json();
                         searchName = cleanedName;
@@ -1233,7 +1233,7 @@ class SteamGameBeatTimes {
         this.renderGames();
 
         try {
-            const response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(newName)}`);
+            const response = await fetch(`https://api.berkankutuk.dk/api/hltb/search?q=${encodeURIComponent(newName)}`);
             
             if (!response.ok) {
                 throw new Error(`API error: ${response.status}`);
