@@ -321,7 +321,7 @@ class SteamGameBeatTimes {
     }
 
     async getSteamGames(steamId, apiKey) {
-        const url = `https://api.berkankutuk.dk/api/hltb/steamGames?steamid=${steamId}&key=${apiKey}`;
+        const url = `https://api.berkankutuk.dk/api/hltb/steam-games?steamid=${steamId}&key=${apiKey}`;
         
         try {
             const response = await fetch(url);
