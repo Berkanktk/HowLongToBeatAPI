@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Game Beat Times</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Steam Game Beat Times</h1>
+            <p>Find completion times for all your Steam games</p>
+        </header>
+
+        <div class="input-section">
+            <div class="mode-selection">
+                <label for="fetchMode">Step 1 - Data Source:</label>
+                <select id="fetchMode">
+                    <option value="games-only">Games Only</option>
+                    <option value="games-beattimes">Games + Beat Times</option>
+                    <option value="load-existing">Load Existing Data</option>
+                </select>
+                <small>Choose to collect new data from Steam or load previously saved data</small>
+            </div>
+            
+            <div class="step2-section" id="step2Section" style="display: none;">
+                <label>Step 2 - Review Results:</label>
+                <div class="step-description">
+                    <small>Review your collection, remove unwanted games, and approve the final list</small>
+                </div>
+            </div>
+            
+            <div class="step3-section" id="step3Section" style="display: none;">
+                <label>Step 3 - Manage Collection:</label>
+                <div class="step-description">
+                    <small>Search cached games and create custom collections for analysis</small>
+                </div>
+            </div>
+            
+            <div class="steam-input">
+                <label for="steamId">Steam ID or Profile URL:</label>
+                <input type="text" id="steamId" placeholder="e.g., 76561198000000000 or https://steamcommunity.com/id/username">
+            </div>
+            
+            <div class="api-input">
+                <label for="steamApiKey">Steam API Key:</label>
+                <input type="password" id="steamApiKey" placeholder="Get from https://steamcommunity.com/dev/apikey">
+                <small>Required to fetch your Steam library. Your key stays in your browser.</small>
+            </div>
+            
+            <div class="load-data-input" id="loadDataInput" style="display: none;">
+                <label for="dataFileInput">Load Data File:</label>
+                <input type="file" id="dataFileInput" accept=".json" placeholder="Select a previously exported JSON file">
+                <small>Load a previously exported collection file to continue where you left off</small>
+            </div>
+            
+            <div class="json-section" id="jsonSection" style="display: none;">
+                <div class="collection-builder">
+                    <div class="search-section">
+                        <label for="gameSearchBox">Search Cached Games:</label>
+                        <input type="text" id="gameSearchBox" placeholder="Type game name to search cached games...">
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                    
+                    <div class="collection-preview">
+                        <label>Your Custom Collection (<span id="collectionCount">0</span> games):</label>
+                        <div class="collection-controls">
+                            <button type="button" id="removePlayedFromCollection" class="btn-secondary">Remove Played</button>
+                            <button type="button" id="clearCollection" class="btn-secondary">Clear All</button>
+                            <button type="button" id="exportCollectionBtn" class="btn-secondary" onclick="app.exportCollection()">Export Collection Data</button>
+                        </div>
+                        <div class="collection-list" id="collectionList"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fetch-button-container">
+                <button id="fetchGames" class="btn-primary">Fetch Games</button>
+                <button id="loadData" class="btn-primary" style="display: none;">Load Data</button>
+                <button id="reviewResults" class="btn-primary" style="display: none;">Review Results (Step 2)</button>
+                <button id="forceLoadResults" class="btn-secondary" style="display: none;">Force Load Results to Step 2</button>
+                <button id="approveAndContinue" class="btn-primary" style="display: none;">Approve & Continue to Step 3</button>
+                <button id="backToReview" class="btn-secondary" style="display: none;">← Back to Review (Step 2)</button>
+                <button id="manageCollection" class="btn-primary" style="display: none;">Load Collection (Step 3)</button>
+            </div>
+        </div>
+
+        <div class="controls" id="controls" style="display: none;">
+            <div class="search-filter">
+                <input type="text" id="gameSearch" placeholder="Search games...">
+            </div>
+            
+            <div class="sort-controls">
+                <label for="sortBy">Sort by:</label>
+                <select id="sortBy">
+                    <option value="name">Game Name</option>
+                    <option value="main">Main Story Time</option>
+                    <option value="mainExtra">Main + Extras</option>
+                    <option value="completionist">Completionist</option>
+                    <option value="allStyles">All Styles</option>
+                    <option value="playtime">Steam Playtime</option>
+                </select>
+                <button id="sortOrder" class="btn-secondary">↑ Ascending</button>
+            </div>
+            
+            <div class="filter-controls">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="hidePlayedGames">
+                    <span class="checkmark"></span>
+                    Hide played games
+                </label>
+            </div>
+
+            <div class="stats">
+                <span id="gameCount">0 games</span>
+            </div>
+        </div>
+
+        <div class="loading" id="loadingIndicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading Steam games...</p>
+        </div>
+
+        <div class="error" id="errorMessage" style="display: none;"></div>
+
+        <div class="results-overview" id="resultsOverview" style="display: none;">
+            <div class="results-header">
+                <h2>Collection Results Overview</h2>
+                <div class="results-stats" id="resultsStats"></div>
+                <div class="global-actions">
+                    <div class="step2-only-actions">
+                        <button class="btn-secondary" onclick="app.resetToOriginalCache()">Reset to Original</button>
+                        <button class="btn-secondary" onclick="app.removeTestGames()">Remove Beta/Demo Games</button>
+                    </div>
+                    <div class="step3-only-actions" style="display: none;">
+                        <button class="btn-secondary" onclick="app.exportCollection()">Export Collection Data</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-categories">
+                <div class="category-section">
+                    <h3>✅ Games with Beat Times (<span id="successCount">0</span>)</h3>
+                    <div class="category-actions">
+                        <button class="btn-secondary" onclick="app.showCategory('success')">View All</button>
+                        <button class="btn-secondary" onclick="app.exportSuccessful()">Export</button>
+                    </div>
+                    <div class="category-list" id="successList"></div>
+                </div>
+                
+                <div class="category-section">
+                    <h3>⚠️ Games with No Data (<span id="noDataCount">0</span>)</h3>
+                    <div class="category-actions">
+                        <button class="btn-secondary" onclick="app.showCategory('nodata')">View All</button>
+                        <button class="btn-secondary" onclick="app.removeAllNoData()">Remove All</button>
+                    </div>
+                    <div class="category-list" id="noDataList"></div>
+                </div>
+
+                <div class="category-section">
+                    <h3>❌ Games with Errors (<span id="errorCount">0</span>)</h3>
+                    <div class="category-actions">
+                        <button class="btn-secondary" onclick="app.showCategory('errors')">View All</button>
+                        <button class="btn-secondary" onclick="app.retryAllErrors()">Retry All</button>
+                        <button class="btn-secondary" onclick="app.removeAllErrors()">Remove All</button>
+                    </div>
+                    <div class="category-list" id="errorsList"></div>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
