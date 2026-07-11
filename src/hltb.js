@@ -4,7 +4,8 @@ import { parse } from 'node-html-parser';
 class HowLongToBeatScraper {
     constructor() {
         this.baseUrl = 'https://howlongtobeat.com';
-        this.searchUrl = 'https://howlongtobeat.com/api/seek/6e17f7a193ef3188';
+        this.initUrl = 'https://howlongtobeat.com/api/bleed/init';
+        this.searchUrl = 'https://howlongtobeat.com/api/bleed';
         this.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Content-Type': 'application/json',
@@ -13,10 +14,24 @@ class HowLongToBeatScraper {
         };
     }
 
+    async initSearchSession() {
+        const response = await axios.get(`${this.initUrl}?t=${Date.now()}`, {
+            headers: {
+                'User-Agent': this.headers['User-Agent'],
+                'Referer': this.headers['Referer']
+            },
+            timeout: 15000
+        });
+
+        const { token, hpKey, hpVal } = response.data;
+        return { token, hpKey, hpVal };
+    }
+
     async searchGame(gameName) {
         try {
             const searchTerms = gameName.toLowerCase().split(' ').filter(term => term.length > 0);
-            
+            const { token, hpKey, hpVal } = await this.initSearchSession();
+
             const requestBody = {
                 searchType: "games",
                 searchTerms: searchTerms,
@@ -54,11 +69,17 @@ class HowLongToBeatScraper {
                     sort: 0,
                     randomizer: 0
                 },
-                useCache: true
+                useCache: true,
+                [hpKey]: hpVal
             };
 
             const response = await axios.post(this.searchUrl, requestBody, {
-                headers: this.headers,
+                headers: {
+                    ...this.headers,
+                    'x-auth-token': token,
+                    'x-hp-key': hpKey,
+                    'x-hp-val': hpVal
+                },
                 timeout: 15000
             });
 
