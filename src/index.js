@@ -203,7 +203,7 @@ app.use((error, req, res, next) => {
 });
 
 // Start the server.
-app.listen(port, () => {
+app.listen(3001, () => {
     console.log(`HowLongToBeat API server running on port ${port}`);
     console.log(`Available endpoints:`);
     console.log(`  GET  /api/search?q={game_name}`);
