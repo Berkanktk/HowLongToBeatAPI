@@ -1561,21 +1561,62 @@ class SteamGameBeatTimes {
     }
 
     exportSuccessful() {
-        const successful = this.games.filter(game => game.beatTimes && !game.beatTimesError);
-        const csvContent = "data:text/csv;charset=utf-8," + 
-            "Game Name,Main Story,Main + Extras,Completionist,All Styles,Steam Playtime\n" +
-            successful.map(game => {
-                const times = game.beatTimes;
-                return `"${game.name}","${times.main || 'N/A'}","${times.mainExtra || 'N/A'}","${times.completionist || 'N/A'}","${times.allStyles || 'N/A'}","${game.playtime_forever}h"`;
-            }).join("\n");
+        this.exportSuccessfulToExcel();
+    }
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "steam_games_beat_times.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    exportToExcel(games, filename) {
+        if (!games || games.length === 0) {
+            alert('No games to export.');
+            return;
+        }
+
+        const rows = games.map(game => {
+            const times = game.beatTimes || {};
+            return {
+                'Game Name': game.name,
+                'Main Story': times.main || 'N/A',
+                'Main + Extras': times.mainExtra || 'N/A',
+                'Completionist': times.completionist || 'N/A',
+                'All Styles': times.allStyles || 'N/A',
+                'Steam Playtime (h)': game.playtime_forever || 0,
+                'Played': (game.playtime_forever || 0) > 0 ? 'Yes' : 'No'
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+
+        // Column widths
+        worksheet['!cols'] = [
+            { wch: 40 },
+            { wch: 14 },
+            { wch: 14 },
+            { wch: 16 },
+            { wch: 14 },
+            { wch: 20 },
+            { wch: 8 }
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Games');
+        XLSX.writeFile(workbook, filename);
+    }
+
+    exportSuccessfulToExcel() {
+        const successful = this.games.filter(game => game.beatTimes && !game.beatTimesError);
+        const date = new Date().toISOString().split('T')[0];
+        this.exportToExcel(successful, `steam_games_beat_times_${date}.xlsx`);
+    }
+
+    exportUnplayedToExcel() {
+        const unplayed = this.games.filter(game =>
+            game.beatTimes && !game.beatTimesError && (game.playtime_forever || 0) === 0
+        );
+        if (unplayed.length === 0) {
+            alert('No unplayed games with beat times found.');
+            return;
+        }
+        const date = new Date().toISOString().split('T')[0];
+        this.exportToExcel(unplayed, `steam_unplayed_games_${date}.xlsx`);
     }
 
     removeGameCompletely(gameName) {

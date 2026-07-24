@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steam Game Beat Times</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎮 Steam Game Beat Times</h1>
+            <div class="header-icon">🎮</div>
+            <h1>Steam Game Beat Times</h1>
             <p>Find completion times for all your Steam games</p>
         </header>
 
@@ -112,6 +114,11 @@
                 </label>
             </div>
 
+            <div class="export-controls">
+                <button class="btn-excel" onclick="app.exportSuccessfulToExcel()">Export to Excel</button>
+                <button class="btn-excel btn-excel-unplayed" onclick="app.exportUnplayedToExcel()">Export Unplayed</button>
+            </div>
+
             <div class="stats">
                 <span id="gameCount">0 games</span>
             </div>
@@ -144,7 +151,8 @@
                     <h3>✅ Games with Beat Times (<span id="successCount">0</span>)</h3>
                     <div class="category-actions">
                         <button class="btn-secondary" onclick="app.showCategory('success')">View All</button>
-                        <button class="btn-secondary" onclick="app.exportSuccessful()">Export</button>
+                        <button class="btn-excel" onclick="app.exportSuccessfulToExcel()">Export to Excel</button>
+                        <button class="btn-excel btn-excel-unplayed" onclick="app.exportUnplayedToExcel()">Export Unplayed</button>
                     </div>
                     <div class="category-list" id="successList"></div>
                 </div>
